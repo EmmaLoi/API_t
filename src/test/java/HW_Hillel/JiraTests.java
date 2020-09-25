@@ -1,20 +1,15 @@
 package HW_Hillel;
-
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.testng.annotations.Test;
-
 import java.util.concurrent.TimeUnit;
-
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.lessThan;
 import static org.testng.Assert.assertEquals;
 
-
 public class JiraTests {
   String ticketId;
   String commentURI;
-  String commentId;
   Response responseCreateIssue;
   Response responseGetCreatedIssue;
   Response deleteIssueResponse;
