@@ -1,6 +1,7 @@
 package HW_Hillel;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import org.json.simple.JSONObject;
 import org.testng.annotations.Test;
 import java.util.concurrent.TimeUnit;
 import static io.restassured.RestAssured.given;
@@ -21,25 +22,27 @@ public class JiraTests {
   @Test
   public void jiraCreateIssue() {
 
+    JSONObject issue = new JSONObject();
+    JSONObject fields = new JSONObject();
+    JSONObject reporter = new JSONObject();
+    JSONObject project = new JSONObject();
+    JSONObject issuetype = new JSONObject();
+
+    issuetype.put("id", "10105");
+    issuetype.put("name", "test");
+    project.put("id", "10508");
+    reporter.put("name", "webinar5");
+    fields.put("summary", "some summary");
+    fields.put("issuetype", issuetype);
+    fields.put("reporter", reporter);
+    fields.put("project", project);
+    issue.put("fields", fields);
+
     responseCreateIssue =
         given().
             auth().preemptive().basic("webinar5", "webinar5").
             contentType(ContentType.JSON).
-            body("{\n" +
-                "   \"fields\":{\n" +
-                "      \"summary\":\"Main order flow broken\",\n" +
-                "      \"issuetype\":{\n" +
-                "         \"id\":\"10105\",\n" +
-                "         \"name\":\"test\"\n" +
-                "      },\n" +
-                "      \"project\":{\n" +
-                "         \"id\":\"10508\"\n" +
-                "      },\n" +
-                "   \"reporter\": {\n" +
-                "      \"name\": \"webinar5\"\n" +
-                "    }\n" +
-                "   }\n" +
-                "}\u2029").
+            body(issue.toJSONString()).
         when().post("https://jira.hillel.it/rest/api/2/issue").
         then().
             contentType(ContentType.JSON).
@@ -57,7 +60,7 @@ public class JiraTests {
             contentType(ContentType.JSON).
             statusCode(200).
             extract().response();
-    assertEquals(responseGetCreatedIssue.path("fields.summary"), "Main order flow broken");
+    assertEquals(responseGetCreatedIssue.path("fields.summary"), "some summary");
     assertEquals(responseGetCreatedIssue.path("fields.creator.name"), "webinar5");
 
     deleteIssueResponse =
