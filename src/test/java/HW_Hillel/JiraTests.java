@@ -1,27 +1,24 @@
 package HW_Hillel;
-import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.json.simple.JSONObject;
 import org.testng.annotations.Test;
-import java.util.concurrent.TimeUnit;
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.lessThan;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 public class JiraTests {
+
   String ticketId;
   String commentURI;
   Response responseCreateIssue;
   Response responseGetCreatedIssue;
-  Response deleteIssueResponse;
-  Response checkDeletedIssueResponse;
-  Response addJiraCommentResponse;
-  Response deleteCommentResponse;
-  Response getDeletedCommentResponse;
+  Response responseDeleteIssue;
+  Response responseCheckDeletedIssue;
+  Response responseAddJiraComment;
+  Response responseDeleteComment;
+  Response responseGetDeletedComment;
 
   @Test
   public void jiraCreateIssue() {
-
     JSONObject issue = new JSONObject();
     JSONObject fields = new JSONObject();
     JSONObject reporter = new JSONObject();
@@ -38,87 +35,25 @@ public class JiraTests {
     fields.put("project", project);
     issue.put("fields", fields);
 
-    responseCreateIssue =
-        given().
-            auth().preemptive().basic("webinar5", "webinar5").
-            contentType(ContentType.JSON).
-            body(issue.toJSONString()).
-        when().post("https://jira.hillel.it/rest/api/2/issue").
-        then().
-            contentType(ContentType.JSON).
-            statusCode(201).
-            extract().response();
+    responseCreateIssue = JiraAPISteps.createIssue(issue);
     ticketId = responseCreateIssue.path("id");
-
-    responseGetCreatedIssue =
-        given().
-            auth().preemptive().basic("webinar5", "webinar5").
-            contentType(ContentType.JSON).
-        when().
-            get("https://jira.hillel.it/rest/api/2/issue/" + ticketId).
-        then().
-            contentType(ContentType.JSON).
-            statusCode(200).
-            extract().response();
+    assertTrue(responseCreateIssue.path("key").toString().contains("WEBINAR-"));
+    responseGetCreatedIssue = JiraAPISteps.getCreatedIssue(ticketId);
     assertEquals(responseGetCreatedIssue.path("fields.summary"), "some summary");
     assertEquals(responseGetCreatedIssue.path("fields.creator.name"), "webinar5");
-
-    deleteIssueResponse =
-        given().
-            auth().preemptive().basic("webinar5", "webinar5").
-            contentType(ContentType.JSON).
-            when().
-            delete("https://jira.hillel.it/rest/api/2/issue/" + ticketId).
-            then().
-            statusCode(204).
-            extract().response();
-    deleteIssueResponse.print();
-
-    checkDeletedIssueResponse =
-        given().
-            auth().preemptive().basic("webinar5", "webinar5").
-            contentType(ContentType.JSON).
-            when().
-            get("https://jira.hillel.it/rest/api/2/issue/" + ticketId).
-            then().
-            statusCode(404).
-            extract().response();
+    responseDeleteIssue = JiraAPISteps.deleteIssue(ticketId);
+    responseDeleteIssue.print();
+    responseCheckDeletedIssue = JiraAPISteps.checkDeletedIssue(ticketId);
   }
 
   @Test
   public void addDeleteJiraComment(){
-
     JSONObject comment = new JSONObject();
     comment.put("body", "new comment");
 
-    addJiraCommentResponse =
-        given().
-            auth().preemptive().basic("webinar5", "webinar5").
-            contentType(ContentType.JSON).
-            body(comment.toJSONString()).
-            when().
-            post("https://jira.hillel.it/rest/api/2/issue/WEBINAR-13562/comment").
-            then().
-            contentType(ContentType.JSON).
-            statusCode(201).
-            time(lessThan(2L), TimeUnit.SECONDS).
-            extract().response();
-    commentURI = addJiraCommentResponse.path("self");
-
-    deleteCommentResponse =
-        given().
-            auth().preemptive().basic("webinar5", "webinar5").
-            delete(commentURI).
-            then().
-            statusCode(204).
-            extract().response();
-
-    getDeletedCommentResponse =
-        given().
-            auth().preemptive().basic("webinar5", "webinar5").
-            get(commentURI).
-            then().
-            statusCode(404).
-            extract().response();
+    responseAddJiraComment = JiraAPISteps.addJiraComment(comment);
+    commentURI = responseAddJiraComment.path("self");
+    responseDeleteComment = JiraAPISteps.deleteComment(commentURI);
+    responseGetDeletedComment = JiraAPISteps.getDeletedComment(commentURI);
   }
 }
