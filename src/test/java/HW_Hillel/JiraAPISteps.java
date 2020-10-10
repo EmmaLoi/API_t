@@ -1,102 +1,103 @@
 package HW_Hillel;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
-import org.json.simple.JSONObject;
 import java.util.concurrent.TimeUnit;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.lessThan;
 
 public class JiraAPISteps {
+  static String newIssueJSON = JiraJSONObjects.newIssueJSON();
+  static String newCommentJSON = JiraJSONObjects.newCommentJSON();
 
-  public static Response createIssue(JSONObject issue){
-    Response response =
+  public static Response createIssue(){
+    Response responseCreateIssue =
     given().
-        auth().preemptive().basic("webinar5", "webinar5").
+        auth().preemptive().basic(Credential.username, Credential.password).
         contentType(ContentType.JSON).
-        body(issue.toJSONString()).
-        when().post("https://jira.hillel.it/rest/api/2/issue").
+        body(newIssueJSON).
+        when().post(APIPathes.issue).
         then().
         contentType(ContentType.JSON).
         statusCode(201).
         extract().response();
-    return response;
+    return responseCreateIssue;
   }
 
   public static Response getCreatedIssue(String ticketId){
-    Response response =
+    Response responsegetCreatedIssue =
         given().
-            auth().preemptive().basic("webinar5", "webinar5").
+            auth().preemptive().basic(Credential.username, Credential.password).
             contentType(ContentType.JSON).
             when().
-            get("https://jira.hillel.it/rest/api/2/issue/" + ticketId).
+            get(APIPathes.issue + ticketId).
             then().
             contentType(ContentType.JSON).
             statusCode(200).
             extract().response();
-    return response;
+    return responsegetCreatedIssue;
   }
 
   public static Response deleteIssue(String ticketId){
-    Response response =
+    Response responseDeleteIssue =
         given().
-            auth().preemptive().basic("webinar5", "webinar5").
+            auth().preemptive().basic(Credential.username, Credential.password).
             contentType(ContentType.JSON).
             when().
-            delete("https://jira.hillel.it/rest/api/2/issue/" + ticketId).
+            delete(APIPathes.issue + ticketId).
             then().
             statusCode(204).
             extract().response();
-    return response;
+    return responseDeleteIssue;
   }
 
   public static Response checkDeletedIssue(String ticketId){
-    Response response =
+    Response responseCheckDeletedIssue =
         given().
-            auth().preemptive().basic("webinar5", "webinar5").
+            auth().preemptive().basic(Credential.username, Credential.password).
             contentType(ContentType.JSON).
             when().
-            get("https://jira.hillel.it/rest/api/2/issue/" + ticketId).
+            get(APIPathes.issue + ticketId).
             then().
             statusCode(404).
             extract().response();
-    return response;
+    return responseCheckDeletedIssue;
   }
 
-  public static Response addJiraComment(JSONObject comment){
-    Response response =
+  public static Response addJiraComment(){
+    Response responseAddJiraComment =
         given().
-            auth().preemptive().basic("webinar5", "webinar5").
+            auth().preemptive().basic(Credential.username, Credential.password).
             contentType(ContentType.JSON).
-            body(comment.toJSONString()).
+            body(newCommentJSON).
             when().
-            post("https://jira.hillel.it/rest/api/2/issue/WEBINAR-13562/comment").
+            post(APIPathes.commentWebinar13562).
             then().
             contentType(ContentType.JSON).
             statusCode(201).
-            time(lessThan(2L), TimeUnit.SECONDS).
+            time(lessThan(3L), TimeUnit.SECONDS).
             extract().response();
-    return response;
+    return responseAddJiraComment;
   }
 
   public static Response deleteComment(String commentURI){
-    Response response =
+    Response responseDeleteComment =
         given().
-            auth().preemptive().basic("webinar5", "webinar5").
+            auth().preemptive().basic(Credential.username, Credential.password).
             delete(commentURI).
             then().
             statusCode(204).
             extract().response();
-    return response;
+    return responseDeleteComment;
   }
 
   public static Response getDeletedComment(String commentURI){
-    Response response=
+    Response responseGetDeletedComment =
         given().
-            auth().preemptive().basic("webinar5", "webinar5").
+            auth().preemptive().basic(Credential.username, Credential.password).
             get(commentURI).
             then().
             statusCode(404).
             extract().response();
-    return response;
+    return responseGetDeletedComment;
   }
 }
