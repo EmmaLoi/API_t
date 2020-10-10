@@ -87,11 +87,15 @@ public class JiraTests {
 
   @Test
   public void addDeleteJiraComment(){
+
+    JSONObject comment = new JSONObject();
+    comment.put("body", "new comment");
+
     addJiraCommentResponse =
         given().
             auth().preemptive().basic("webinar5", "webinar5").
             contentType(ContentType.JSON).
-            body("{\"body\" : \"New_Comment\"}").
+            body(comment.toJSONString()).
             when().
             post("https://jira.hillel.it/rest/api/2/issue/WEBINAR-13562/comment").
             then().
